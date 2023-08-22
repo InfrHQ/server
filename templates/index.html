@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<!--
+    Infr Dashboard
+
+    This index page only serves as a simple way to interact with the dashboard on the existing host. 
+    The complete studio is available as a React & Next app in the following repository:
+    https://github.com/InfrHQ/studio
+
+    Join our Discord server for support and feedback:
+    https://discord.gg/ZAejZCzaPe
+-->
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Infr Dashboard</title>
+        <link rel="icon" href="/assets/images/infr-logo.png">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.3.1/css/all.min.css" rel="stylesheet">
+    </head>
+    <body>
+
+        <!-- Navbar -->
+        <nav class="navbar bg-body-tertiary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="/assets/images/infr-logo.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                    Infr
+                </a>
+
+                <form class="d-flex" role="logout">
+                    <button class="btn btn-outline-danger" type="submit" onclick="logOut()">Logout</button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Main -->
+
+        <!-- API Key Prompt -->
+        <div class="p-3" id="apikey_card">
+
+            <!-- API Key Request Card -->
+            <div class="card m-3" >
+
+                <div class="card-body">
+                    <h5 class="card-title" id="authset">Authset</h5>
+                    <div class="mb-3">
+                        <label for="apikey__store" class="form-label">Key</label>
+                        <input type="name" class="form-control" id="apikey__store" placeholder="apikey_...">
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary" onclick="storeAPIKey()"
+                    >Store & Use</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Dashboard -->
+        <div class="p-3" id="dashboard" style="display: none;">
+
+            <!-- Segment Stats -->
+            <div class="row m-1">
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card card-stats mb-4 mb-xl-0">
+                        <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Total Generated</h5>
+                            <span class="h2 font-weight-bold mb-0" id="segment__stat_total"> </span>
+                            </div>
+                            <div class="col-auto">
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow p-2">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card card-stats mb-4 mb-xl-0">
+                        <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Most Recent</h5>
+                            <span class="h2 font-weight-bold mb-0" id="segment__stat_latest"> </span>
+                            </div>
+                            <div class="col-auto">
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow p-2">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card card-stats mb-4 mb-xl-0">
+                        <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Latest Screenshot</h5>
+                            <span class="h2 font-weight-bold mb-0" id="segment__stat_screenshot"> </span>
+                            </div>
+                            <div class="col-auto">
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow p-2">
+                                <i class="fas fa-window-restore"></i>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-6">
+                    <div class="card card-stats mb-4 mb-xl-0">
+                        <div class="card-body">
+                        <div class="row">
+                            <div class="col">
+                            <h5 class="card-title text-uppercase text-muted mb-0">Seg/min</h5>
+                            <span class="h2 font-weight-bold mb-0" id="segment__stat_segmin"> </span>
+                            </div>
+                            <div class="col-auto">
+                            <div class="icon icon-shape bg-success text-white rounded-circle shadow p-2">
+                                 <i class="fas fa-percent"></i>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- User -->
+            <div class="card m-3">
+
+                <div class="card-body">
+                    <h5 class="card-title" id="user__name__hi">Hey, there 👋</h5>
+                    <p class="card-text">User information</p>
+
+                    <div class="mb-3">
+                        <label for="user__name" class="form-label">Name</label>
+                        <input type="name" class="form-control" id="user__name" placeholder="Your Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="user__email" class="form-label">Email address</label>
+                        <input type="email" class="form-control" id="user__email" placeholder="name@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="user__description" class="form-label">Description</label>
+                        <textarea class="form-control" id="user__description" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="save__user" onclick="updateUser()"
+                    >Save</button>
+
+                    <!-- Error/Success Alert -->
+                    <div class="alert" role="alert" id="alert__user" style="display: none;">
+                        Error/Success Text
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Devices Section -->
+            <div class="card m-3">
+                <div class="card-header bg-warning text-dark">
+                    Devices
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Your Devices:</h5>
+                    <!-- This is where your devices will be displayed -->
+                    <div id="devices_section">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Device Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devices_tbody">
+                                <!-- Rows will be populated here via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+                    
+                    <h5 class="mt-4">Add New Device:</h5>
+                    <div class="mb-3">
+                        <label for="device__name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="device__name" placeholder="Device Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="device__description" class="form-label">Description</label>
+                        <textarea class="form-control" id="device__description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="device__type" class="form-label">Device Type</label>
+                        <select class="form-control" id="device__type">
+                            <option value="desktop">Desktop</option>
+                            <option value="mobile">Mobile</option>
+                            <option value="tablet">Tablet</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-warning" onclick="createDevice()">Add Device</button>
+                    <div class="alert mt-3" role="alert" id="alert__device" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Update Device Modal -->
+            <div class="modal fade" id="updateDeviceModal" tabindex="-1" aria-labelledby="updateDeviceModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="updateDeviceModalLabel">Update Device</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Hidden field to store the selected Device ID -->
+                            <input type="hidden" id="selected_device_id">
+            
+                            <div class="mb-3">
+                                <label for="update_device__name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="update_device__name" placeholder="Device Name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="update_device__description" class="form-label">Description</label>
+                                <textarea class="form-control" id="update_device__description" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update_device__type" class="form-label">Device Type</label>
+                                <select class="form-control" id="update_device__type">
+                                    <option value="desktop">desktop</option>
+                                    <option value="mobile">mobile</option>
+                                    <option value="tablet">tablet</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="submitDeviceUpdate()">Update</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- API Keys Section -->
+            <div class="card m-3">
+                <div class="card-header bg-warning text-dark">
+                    API Keys
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Your API Keys:</h5>
+                    <!-- This is where your API keys will be displayed -->
+                    <div id="api_keys_section">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Access Level</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="api_keys_tbody">
+                                <!-- Rows will be populated here via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr>
+                    
+                    <h5 class="mt-4">Create New API Key:</h5>
+                    <div class="mb-3">
+                        <label for="api__name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="api__name" placeholder="API Key Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="api__description" class="form-label">Description</label>
+                        <textarea class="form-control" id="api__description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="api__access_level" class="form-label">Access Level</label>
+                        <select multiple class="form-control" id="api__access_level">
+                            <option value="read">read</option>
+                            <option value="write">write</option>
+                            <option value="admin">admin</option>
+                        </select>
+                    </div>
+                        <button type="submit" class="btn btn-warning" onclick="createAPIKey()">Create</button>
+                        <div class="alert mt-3" role="alert" id="alert__api" style="display: none;"></div>
+                    </div>
+            </div>
+
+            <!-- Update API Key Modal -->
+            <div class="modal fade" id="updateAPIKeyModal" tabindex="-1" aria-labelledby="updateAPIKeyModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="updateAPIKeyModalLabel">Update API Key</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                    <!-- Hidden field to store the selected API Key ID -->
+                    <input type="hidden" id="selected_api_key_id">
+            
+                    <div class="mb-3">
+                        <label for="update_api__name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="update_api__name" placeholder="API Key Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_api__description" class="form-label">Description</label>
+                        <textarea class="form-control" id="update_api__description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_api__access_level" class="form-label">Access Level</label>
+                        <select multiple class="form-control" id="update_api__access_level">
+                            <option value="read">read</option>
+                            <option value="write">write</option>
+                            <option value="admin">admin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="update_api__status" class="form-label">Status</label>
+                        <select class="form-control" id="update_api__status">
+                            <option value="active">active</option>
+                            <option value="inactive">inactive</option>
+                        </select>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAPIKeyUpdate()">Update</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+            
+        </div>
+
+</body>
+
+<!-- Scripts -->
+
+<!-- Store API Key -->
+<script src="assets/scripts/index_storeapikey.js"></script>
+
+<!-- Alert Script -->
+<script src="assets/scripts/index_alert.js"></script>
+
+<!-- Segment Script -->
+<script src="assets/scripts/index_segment.js"></script>
+
+<!-- User Script -->
+<script src="assets/scripts/index_user.js"></script>
+
+<!-- Device Script -->
+<script src="assets/scripts/index_device.js"></script>
+
+<!-- API Keys Script -->
+<script src="assets/scripts/index_apikey.js"></script>
+
+</html>
