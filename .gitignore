@@ -162,3 +162,4 @@ db/
 data.db
 storage
 .cache_ggshield
+.DS_Store

@@ -1,7 +1,6 @@
 """
 :dev This page includes functions to create segments
 """
-import json
 import time
 from flask import jsonify
 
@@ -14,6 +13,8 @@ from core.utils.auth import verify_apikey_request
 from core.configurations import Storage
 from datetime import datetime
 from typing import Union, List
+import base64
+from io import BytesIO
 
 
 def create_inference_item_from_request(incoming_request):
@@ -25,12 +26,12 @@ def create_inference_item_from_request(incoming_request):
         - Args:
             - device_id (str): ID of the device of the item. desktop_app, etc.
             - type (str): Type of the item. screenshot, etc.
+        - JSON:
+            - json_metadata (str): JSON metadata.
+            - screenshot (str->base64): Screenshot.
             - date_generated (float): Date generated. Unix timestamp.
             - lat (float): Latitude.
             - lng (float): Longitude.
-        - Form:
-            - json_metadata (str): JSON metadata.
-            - screenshot (file): Screenshot file.
     """
 
     # Get API Key from the header
@@ -45,7 +46,7 @@ def create_inference_item_from_request(incoming_request):
         return jsonify({"message": "Source not provided"}), 400
     device = Device.query.filter_by(id=device_id).first()
     if not device:
-        return jsonify({"message": "Source not supported"}), 400
+        return jsonify({"message": "Source not supported"}), 404
     if device.device_type not in ['desktop']:
         return jsonify({"message": "Source not supported"}), 400
 
@@ -57,8 +58,27 @@ def create_inference_item_from_request(incoming_request):
     if item_type not in ['screenshot']:
         return jsonify({"message": "Type not supported"}), 400
 
+    if device.device_type == 'desktop' and item_type == 'screenshot':
+        data = incoming_request.get_json()
+        return handle_desktop_screenshot(device_id=device_id,
+                                         image_file=data.get('screenshot'),
+                                         date_generated=data.get('date_generated'),
+                                         json_metadata=data.get('json_metadata'),
+                                         lat=data.get('lat'), lng=data.get('lng'))
+    else:
+        return jsonify({"message": "Source & item not supported"}), 400
+
+
+def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
+                              date_generated: Union[float, None],
+                              json_metadata: Union[dict, None],
+                              lat: Union[float, None],
+                              lng: Union[float, None]):
+    """
+    :dev Handle data from desktop webapp
+    """
+
     # Get date_generated from the query params
-    date_generated = incoming_request.args.get('date_generated')
     if not date_generated:
         return jsonify({"message": "Date generated not provided"}), 400
     date_generated = int(float(date_generated))
@@ -66,33 +86,27 @@ def create_inference_item_from_request(incoming_request):
         return jsonify({"message": "Date generated cannot be in the future"}), 400
 
     # Get lat, lng from the query params
-    lat = incoming_request.args.get('lat')
-    lng = incoming_request.args.get('lng')
     if lat:
         lat = float(lat)
+    else:
+        lat = None
     if lng:
         lng = float(lng)
-
-    # Get the multipart form data
-    json_metadata = json.loads(incoming_request.form.get('json_metadata'))
-    if device.device_type == 'desktop' and item_type == 'screenshot':
-        image_file = incoming_request.files.get('screenshot')
-        return handle_desktop_screenshot(image_file, date_generated,
-                                         json_metadata, lat, lng, device_id, item_type=item_type)
     else:
-        return jsonify({"message": "Source & item not supported"}), 400
+        lng = None
 
+    # Handle the image, if exists, convert to blob
+    if not image_file or not isinstance(image_file, str):
+        return jsonify({"message": "Screenshot not provided"}), 400
 
-def handle_desktop_screenshot(image_file, date_generated, json_metadata,
-                              lat, lng, device_id, item_type='screenshot'):
-    """
-    :dev Handle data from desktop webapp
-    """
+    # Handle json
+    if not json_metadata or not isinstance(json_metadata, dict):
+        return jsonify({"message": "JSON metadata not provided"}), 400
 
     segment_id = get_alphnum_id(prefix='segment_', id_len=16)
 
     # Get the pillow image
-    image = get_pillow_image_from_request(image_file)
+    image = get_pillow_image_from_request(BytesIO(base64.b64decode(image_file)))
 
     # Get the bouding box & clean text data
     box_data = get_data_from_image(image)
@@ -142,16 +156,17 @@ def get_availability():
     availability = []
     if Storage.local:
         availability.append('local')
-    if Storage.third_party == "supabase":
-        availability.append('supabase')
+    if Storage.third_party:
+        availability.append(Storage.third_party)
 
     return availability
 
 
-def create_and_store_segment(segment_id: str, date_generated: float, lat: float, lng: float,
-                             vector: list, name: Union[None, str], description: Union[None, str], extracted_text: str,
+def create_and_store_segment(segment_id: str, date_generated: float, lat: Union[float, None],
+                             lng: Union[float, None], vector: list, name: Union[None, str],
+                             description: Union[None, str], extracted_text: str,
                              attributes: dict, item_type: str, device_id: str,
-                             available_in: List[str] = ['local', 'supabase'],
+                             available_in: List[str] = ['local', 'supabase', 'azure_blob'],
                              status: str = 'active'):
     """
     :dev This function creates and stores a segment.
