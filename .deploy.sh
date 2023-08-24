@@ -27,6 +27,7 @@ fi
 apt-get clean 
 apt-get autoremove
 
+flask db migrate
 flask db upgrade
 
 gunicorn main:application -b 0.0.0.0:8000

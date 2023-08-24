@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, ForeignKey, DateTime, Enum, Float, Text
+from sqlalchemy import String, ForeignKey, DateTime, Float, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from core.connectors.postgre import db
 from pgvector.sqlalchemy import Vector
@@ -22,7 +22,7 @@ class User(BaseModel):
     id = db.Column(String, primary_key=True, unique=True)
 
     # Meta
-    status = db.Column(Enum('active', 'inactive', name='status_enum'), default='active')
+    status = db.Column(String, default='active', nullable=False)  # active, inactive
     date_created = db.Column(DateTime, default=datetime.utcnow)
     date_updated = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     email_id = db.Column(String, nullable=False)
@@ -78,7 +78,7 @@ class ApiKey(BaseModel):
     # Meta
     date_created = db.Column(DateTime, default=datetime.utcnow)
     date_updated = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    status = db.Column(Enum('active', 'inactive', name='status_enum'), default='active')
+    status = db.Column(String, default='active', nullable=False)  # active, inactive, deleted
 
     # Info
     access_level = db.Column(db.ARRAY(String))  # read, write, admin
@@ -109,14 +109,14 @@ class Device(BaseModel):
     id = db.Column(String, primary_key=True, unique=True)
 
     # Meta
-    status = db.Column(Enum('active', 'inactive', name='status_enum'), default='active')
+    status = db.Column(String, default='active', nullable=False)  # active, inactive, deleted
     date_created = db.Column(DateTime, default=datetime.utcnow)
     date_updated = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Info
     name = db.Column(String)
     description = db.Column(Text)
-    device_type = db.Column(Enum('desktop', 'mobile', 'tablet', name='device_type_enum'))
+    device_type = db.Column(String, default='desktop', nullable=False)  # desktop, mobile, tablet, etc.
 
     # Other
     segments = db.relationship('Segment', backref='device', order_by="desc(Segment.date_created)", lazy='dynamic')
@@ -151,12 +151,12 @@ class Segment(BaseModel):
     # Meta
     device_id = db.Column(String, ForeignKey('device.id'), index=True)
 
-    status = db.Column(Enum('active', 'inactive', name='status_enum'), default='active')
-    item_type = db.Column(Enum('screenshot', name='item_type_enum'))
+    status = db.Column(String, default='active', nullable=False)  # active, inactive, deleted
+    item_type = db.Column(String, default='screenshot', nullable=False)  # screenshot, file, etc.
     date_created = db.Column(DateTime, default=datetime.utcnow)
     date_updated = db.Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     date_generated = db.Column(DateTime, default=datetime.utcnow)
-    available_in = db.Column(db.ARRAY(String))  # local, aws_s3, etc.
+    available_in = db.Column(db.ARRAY(String))  # local, aws_s3, supabase, azure_blob etc.
     lat = db.Column(Float)
     lng = db.Column(Float)
 
