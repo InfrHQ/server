@@ -112,30 +112,39 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
     box_data = get_data_from_image(image)
     extracted_text = get_text_from_image(image)
 
-    # Get the vector
-    vector = get_text_list_as_vectors([extracted_text])[0]
-
-    # Store the image & metadata
-    store_image(image, box_data, segment_id, item_type='screenshot')
-
     """
     Make sure the attributes JSON dict only contains the following:
     - app_name
     - window_name
     - current_url
+    - bundle_id
     - bounding_box_available
     """
     attributes = {}
-    for key in ['app_name', 'window_name', 'current_url']:
+    for key in ['app_name', 'window_name', 'current_url', 'bundle_id']:
         if key in json_metadata:
-            attributes[key] = json_metadata[key]
+            if isinstance(json_metadata[key], str):
+                attributes[key] = json_metadata[key]
     if isinstance(box_data, list):
         attributes['bounding_box_available'] = True
     else:
         attributes['bounding_box_available'] = False
 
+    # Get the vector
+    conversion_text = extracted_text + ' ' \
+        + attributes.get('window_name', '') + ' ' \
+        + attributes.get('app_name', '')
+    vector = get_text_list_as_vectors([conversion_text])[0]
+
+    # Store the image & metadata
+    store_image(image, box_data, segment_id, item_type='screenshot')
+
     # Get the name as Desktop Screenshot - Mon, 01 Jan, 2021 12:00:00 GMT - App Name - Window Name
-    name = f"Desktop Screenshot - {datetime.utcfromtimestamp(date_generated).strftime('%a, %d %b, %Y %H:%M:%S GMT')} - {attributes['app_name']} - {attributes['window_name']}"  # noqa
+    name = f"Desktop Screenshot - {datetime.utcfromtimestamp(date_generated).strftime('%a, %d %b, %Y %H:%M:%S GMT')}"
+    if attributes.get('app_name'):
+        name += f" - {attributes.get('app_name')}"
+    if attributes.get('window_name'):
+        name += f" - {attributes.get('window_name')}"
 
     # Create and store the segment
     segment = create_and_store_segment(
