@@ -6,12 +6,18 @@ WORKDIR /app
 
 # Install system dependencies & Tesseract
 RUN apt-get update -y && \
-    # Get teseract-ocr
+    # Get teseract-ocr & curl
     apt-get install -y tesseract-ocr tesseract-ocr-eng libtesseract-dev && \ 
+    # Curl & essentials
+    apt-get install -y curl build-essential && \
     # Get OpenCV dependencies
     apt-get -y install ffmpeg libsm6 libxext6 && \
     apt-get clean && \
     apt-get autoremove
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Copy the local requirements file to the container
 COPY ./requirements.txt .
