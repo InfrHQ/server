@@ -40,8 +40,12 @@ def get_segment_arg_wrapper(args):
     :dev This is a wrapper function to get the segment ID from the request args.
     """
     status = args.get('status')
-    device_id = args.get('device_id')
-    item_type = args.get('item_type')
+
+    # Multple device IDs, items, segements IDs and attributes can be provided as a comma separated string
+    device_ids = args.get('device_ids')
+    item_types = args.get('item_types')
+    segment_ids = args.get('segment_ids')
+    available_in = args.get('available_in')
 
     date_created_from = args.get('date_created_from')
     date_created_to = args.get('date_created_to')
@@ -50,20 +54,22 @@ def get_segment_arg_wrapper(args):
     date_generated_from = args.get('date_generated_from')
     date_generated_to = args.get('date_generated_to')
 
-    available_in = args.get('available_in')
-    name_contains = args.get('name_contains')
-    description_contains = args.get('description_contains')
-    extracted_text_contains = args.get('extracted_text_contains')
+    attributes = args.getlist('attributes')
+    name = args.get('name')
+    description = args.get('description')
+    extracted_text = args.get('extracted_text')
+
     lat_tl = float(args.get('lat_tl', 0))
     lng_tl = float(args.get('lng_tl', 0))
     box_width = float(args.get('box_width', 0))
-    order_by = args.get('order_by', 'date_created')
+
+    order_by = args.get('order_by', 'date_generated')
     order_direction = args.get('order_direction', 'desc')
     limit = int(args.get('limit', 100))
-    if limit > 100:
-        limit = 100
+    if limit > 1000:
+        limit = 1000
     offset = int(args.get('offset', 0))
-    attributes = args.get('attributes')
+
     vectorized_text = args.get('vectorized_text')
 
     include_vector = args.get('include_vector', 'false').lower() == 'true'
@@ -74,13 +80,15 @@ def get_segment_arg_wrapper(args):
     if vectorized_text:
         vectorized_text = get_text_list_as_vectors([vectorized_text])[0]
 
-    results = get_segments(status=status, device_id=device_id, item_type=item_type, date_created_from=date_created_from,
+    results = get_segments(status=status, segment_ids=segment_ids,
+                           device_ids=device_ids, item_types=item_types,
+                           date_created_from=date_created_from,
                            date_created_to=date_created_to, date_updated_from=date_updated_from,
                            date_updated_to=date_updated_to, date_generated_from=date_generated_from,
                            date_generated_to=date_generated_to, available_in=available_in,
-                           name_contains=name_contains, description_contains=description_contains,
-                           extracted_text_contains=extracted_text_contains, lat_tl=lat_tl, lng_tl=lng_tl,
-                           box_width=box_width, order_by=order_by, order_direction=order_direction,
+                           name=name, description=description, extracted_text=extracted_text,
+                           lat_tl=lat_tl, lng_tl=lng_tl, box_width=box_width, order_by=order_by,
+                           order_direction=order_direction,
                            limit=limit, offset=offset, attributes=attributes,
                            vectorized_text=vectorized_text,
                            include_vector=include_vector, include_image=include_image,
@@ -89,12 +97,12 @@ def get_segment_arg_wrapper(args):
     return results
 
 
-def get_segments(status=None, device_id=None, item_type=None, date_created_from=None,
-                 date_created_to=None, date_updated_from=None, date_updated_to=None,
+def get_segments(status=None, segment_ids=None, device_ids=None, item_types=None,
+                 date_created_from=None, date_created_to=None, date_updated_from=None, date_updated_to=None,
                  date_generated_from=None, date_generated_to=None,
-                 available_in=None, name_contains=None, description_contains=None,
-                 extracted_text_contains=None, lat_tl=None, lng_tl=None, box_width=None,
-                 order_by='date_created', order_direction='desc',
+                 available_in=None, name=None, description=None,
+                 extracted_text=None, lat_tl=None, lng_tl=None, box_width=None,
+                 order_by='date_generated', order_direction='desc',
                  limit=100, offset=0, attributes=None, vectorized_text=None,
                  include_vector=False, include_image=False, include_bounding_box=False, include_fields=None):
 
@@ -103,10 +111,15 @@ def get_segments(status=None, device_id=None, item_type=None, date_created_from=
     # Add filters based on provided arguments
     if status:
         query = query.filter(Segment.status == status)
-    if device_id:
-        query = query.filter(Segment.device_id == device_id)
-    if item_type:
-        query = query.filter(Segment.item_type == item_type)
+    if segment_ids:
+        segment_id_list = segment_ids.split(',')
+        query = query.filter(Segment.id.in_(segment_id_list))
+    if device_ids:
+        device_id_list = device_ids.split(',')
+        query = query.filter(Segment.device_id.in_(device_id_list))
+    if item_types:
+        item_type_list = item_types.split(',')
+        query = query.filter(Segment.item_type.in_(item_type_list))
     if date_created_from and date_created_to:
         date_created_from, date_created_to = datetime.fromtimestamp(
             date_created_from), datetime.fromtimestamp(date_created_to)
@@ -122,12 +135,20 @@ def get_segments(status=None, device_id=None, item_type=None, date_created_from=
                              Segment.date_generated <= date_generated_to))
     if available_in:
         query = query.filter(Segment.available_in.contains(available_in))
-    if name_contains:
-        query = query.filter(Segment.name.contains(name_contains))
-    if description_contains:
-        query = query.filter(Segment.description.contains(description_contains))
-    if extracted_text_contains:
-        query = query.filter(Segment.extracted_text.contains(extracted_text_contains))
+
+    # Text based search items
+    if name:
+        query = handle_text_based_search('name', name, query)
+    if description:
+        query = handle_text_based_search('description', description, query)
+    if extracted_text:
+        query = handle_text_based_search('extracted_text', extracted_text, query)
+
+    # Attributes filter
+    if attributes:
+        for attribute in attributes:
+            key, value = attribute.split(':', 1)
+            query = handle_text_based_search(key, value, query, is_attribute=True)
 
     # Geolocation bounding box filter
     if lat_tl and lng_tl and box_width:
@@ -135,11 +156,6 @@ def get_segments(status=None, device_id=None, item_type=None, date_created_from=
         lng_br = lng_tl + box_width  # bottom right longitude
         query = query.filter(and_(Segment.lat >= lat_br, Segment.lat <= lat_tl,
                              Segment.lng >= lng_tl, Segment.lng <= lng_br))
-
-    # Attributes filter
-    if attributes:
-        key, value = attributes.split(':')
-        query = query.filter(Segment.attributes[key].astext == value)
 
     # Vectorized text search using pgvector
     if vectorized_text:
@@ -168,65 +184,39 @@ def get_segments(status=None, device_id=None, item_type=None, date_created_from=
     return results
 
 
-def query_single_segment(incoming_request, segment_id: str):
+def handle_text_based_search(key, value, query, is_attribute=False):
     """
-    :dev This function queries a single segment
-    :param incoming_request (obj): Incoming request object.
-        - Headers:
-            - Infr-API-Key (str): API key which should have read access.
-    :param segment_id (str): Segment ID to query.
-    :return (obj): Segment object.
-    """
+    :dev This function handles text based search based on the operator.
+    :param key (str): Key for which search is to be performed. This key may include the operator.
 
-    # Get the API Key from the header
-    api_key_obj, status = verify_apikey_request(incoming_request, 'read')
-    if status != 200 or not isinstance(api_key_obj, ApiKey):
-        return api_key_obj, status
+        - operator:attribute_name or attribute_name where operator is one of the following:
+            - eq: Equal to
+            - ilike: Case insensitive like, i.e. contains
 
-    # Get the segment
-    segment = Segment.query.filter(Segment.id == segment_id).first()
-    if not segment:
-        return jsonify({"message": "Segment not found"}), 404
-
-    return jsonify({"message": "Segment retrieved", "segment": segment.to_json(
-        include_fields=None, get_image=True, get_bouding_box=True
-    )}), 200
-
-
-def query_segment_stats(incoming_request):
-    """
-    :dev This function queries segment stats for the server
-    :param incoming_request (obj): Incoming request object.
-        - Headers:
-            - Infr-API-Key (str): API key which should have read access.
+    :param value (str): Value for which search is to be performed.
+    :param column (obj): Column object.
+    :param query (obj): Query object.
+    :param is_attribute (bool): Whether the key is an attribute or not.
     """
 
-    # Get the API Key from the header
-    api_key_obj, status = verify_apikey_request(incoming_request, 'read')
-    if status != 200 or not isinstance(api_key_obj, ApiKey):
-        return api_key_obj, status
+    if is_attribute:
+        if "$" != key[0]:
+            query = query.filter(Segment.attributes[key].astext == value)
+        else:
+            operator, key = value.split(':', 1)
+            if operator == "eq":
+                query = query.filter(Segment.attributes[key].astext == value)
+            elif operator == "ilike":
+                query = query.filter(Segment.attributes[key].astext.ilike("%"+value+"%"))
 
-    # Get the following stats:
-    # - Total segments
-    # - First segment created
-    # - Lasted segment created
-    total_segments = Segment.query.count()
-    first_segment = Segment.query.order_by(
-        asc(Segment.date_created)).first()
-    last_segment = Segment.query.order_by(
-        desc(Segment.date_created)).first()
+    else:
+        if "$" != key[0]:
+            query = query.filter(getattr(Segment, key) == value)
+        else:
+            operator, key = value.split(':', 1)
+            if operator == "eq":
+                query = query.filter(getattr(Segment, key) == value)
+            elif operator == "ilike":
+                query = query.filter(getattr(Segment, key).ilike("%"+value+"%"))
 
-    return jsonify({
-        "message": "Segment stats retrieved",
-        "stats": {
-            "total_segments": total_segments,
-            "first_segment": first_segment.to_json(include_fields=None,
-                                                   get_image=True,
-                                                   get_bouding_box=False)
-            if first_segment else None,
-            "last_segment": last_segment.to_json(include_fields=None,
-                                                 get_image=True,
-                                                 get_bouding_box=False)
-            if last_segment else None
-        }
-    }), 200
+    return query
