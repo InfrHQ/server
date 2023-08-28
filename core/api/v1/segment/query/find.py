@@ -187,36 +187,36 @@ def get_segments(status=None, segment_ids=None, device_ids=None, item_types=None
 def handle_text_based_search(key, value, query, is_attribute=False):
     """
     :dev This function handles text based search based on the operator.
-    :param key (str): Key for which search is to be performed. This key may include the operator.
+    :param key (str): Key for which search is to be performed.
+    :param value (str): Value for which search is to be performed. This key may include the operator.
 
-        - operator:attribute_name or attribute_name where operator is one of the following:
+        - $operator:value or just value where operator is one of the following:
             - eq: Equal to
             - ilike: Case insensitive like, i.e. contains
 
-    :param value (str): Value for which search is to be performed.
     :param column (obj): Column object.
     :param query (obj): Query object.
     :param is_attribute (bool): Whether the key is an attribute or not.
     """
 
     if is_attribute:
-        if "$" != key[0]:
+        if "$" != value[0]:
             query = query.filter(Segment.attributes[key].astext == value)
         else:
-            operator, key = value.split(':', 1)
-            if operator == "eq":
+            operator, value = value.split(':', 1)
+            if operator == "$eq":
                 query = query.filter(Segment.attributes[key].astext == value)
-            elif operator == "ilike":
+            elif operator == "$ilike":
                 query = query.filter(Segment.attributes[key].astext.ilike("%"+value+"%"))
 
     else:
-        if "$" != key[0]:
+        if "$" != value[0]:
             query = query.filter(getattr(Segment, key) == value)
         else:
-            operator, key = value.split(':', 1)
-            if operator == "eq":
+            operator, value = value.split(':', 1)
+            if operator == "$eq":
                 query = query.filter(getattr(Segment, key) == value)
-            elif operator == "ilike":
+            elif operator == "$ilike":
                 query = query.filter(getattr(Segment, key).ilike("%"+value+"%"))
 
     return query
