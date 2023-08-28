@@ -4,6 +4,8 @@ An autonomous, open-source platform for data collection, storage, & retrieval th
 
 ![Infr](assets/images/infr.jpg)
 
+![Alt](https://repobeats.axiom.co/api/embed/0f5da11c65d949b38abd4cd6697af5165c690f0c.svg "Repobeats analytics image")
+
 ## What is Infr?
 
 Infr is a platform for data collection, storage, & retrieval that you can self-host. It is designed to be API-first & modular, so that you can easily add new data sources, storage backends, and retrieval methods.
