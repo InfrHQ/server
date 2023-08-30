@@ -4,6 +4,7 @@ from sqlalchemy import and_, desc, asc, func, or_
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from core.connectors.iql.parser import IQLParser
+from core.connectors.storage import storage_client
 
 
 class IQLHandler(IQLParser):
@@ -104,9 +105,9 @@ class IQLHandler(IQLParser):
         # The "make" logic could be implemented outside of SQL query,
         # for example, making additional data based on the query result.
         items = step['args']['items']
-        if 'screenshot' in items:
+        if 'screenshot_url' in items:
             self._make__include_screenshot = True
-        if 'bounding_box' in items:
+        if 'bounding_box_url' in items:
             self._make__include_bounding_box = True
         if 'vector' in items:
             self._make__include_vector = True
@@ -217,11 +218,10 @@ class IQLHandler(IQLParser):
         :return: Modified SQLAlchemy Query object with vector search applied.
         """
         text = step['args']['text']
-        limit = step['args']['limit']
         vector = get_text_list_as_vectors([text])[0]
 
         # Assuming you have set up an index on the `vector` column with pgvector
-        query = query.order_by(Segment.vector.l2_distance(vector)).limit(limit)
+        query = query.order_by(Segment.vector.l2_distance(vector))
         return query
 
     def _handle_return(self, query):
@@ -282,6 +282,16 @@ class IQLHandler(IQLParser):
                         attributes_dict[field] = row_dict.pop(field)
 
                 row_dict['attributes'] = attributes_dict
+
+            if self._make__include_vector:
+                row_dict['vector'] = list(row_dict['vector'])
+
+            if self._make__include_screenshot:
+                row_dict['screenshot_url'] = storage_client.get_file_url(f"segments/{row_dict['id']}/image.webp")
+
+            if self._make__include_bounding_box:
+                row_dict['bounding_box_url'] = storage_client.get_file_url(
+                    f"segments/{row_dict['id']}/bounding_box_data.json.lzma")
 
             return row_dict
 

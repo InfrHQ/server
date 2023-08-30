@@ -208,19 +208,12 @@ class IQLParser:
 
     def _parse_vector_search(self, line):
         # Parse the vector search from the IQL line
-        text, limit = line.replace('vector search ', '').split(',')
-        if not limit:
-            limit = 10
-        else:
-            limit = int(limit.strip())
-        limit = int(limit)
-
+        text = line.replace('vector search ', '')
         # Get the text vector
         self.steps.append({
             "type": "vector_search",
             "args": {
-                "text": text.strip(),
-                "limit": limit,
+                "text": text.strip()
             }
         })
 

@@ -198,7 +198,7 @@ class Segment(BaseModel):
             data['vector'] = list(self.vector)
 
         if get_screenshot:
-            data['screenshot_url'] = storage_client.get_file_url(f"segments/{self.id}/screenshot.webp")
+            data['screenshot_url'] = storage_client.get_file_url(f"segments/{self.id}/image.webp")
 
         if get_bounding_box:
             data['bounding_box_url'] = storage_client.get_file_url(f"segments/{self.id}/bounding_box_data.json.lzma")
