@@ -31,13 +31,13 @@ def query_segment_stats(incoming_request):
         "message": "Segment stats retrieved",
         "stats": {
             "total_segments": total_segments,
-            "first_segment": first_segment.to_json(include_fields=None,
-                                                   get_image=True,
-                                                   get_bouding_box=False)
+            "first_segment": first_segment.to_json(
+                get_screenshot=True,
+                get_bounding_box=False)
             if first_segment else None,
-            "last_segment": last_segment.to_json(include_fields=None,
-                                                 get_image=True,
-                                                 get_bouding_box=False)
+            "last_segment": last_segment.to_json(
+                get_screenshot=True,
+                get_bounding_box=False)
             if last_segment else None
         }
     }), 200

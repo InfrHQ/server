@@ -60,7 +60,7 @@ async function getSegmentStats() {
 
             let latest_screenshot = document.getElementById("segment__stat_screenshot");
             latest_screenshot.innerHTML = (
-                `<a href="${stats.last_segment.image_url}" class="btn btn-success" target="_blank">View</a>`
+                `<a href="${stats.last_segment.screenshot_url}" class="btn btn-success" target="_blank">View</a>`
             )
 
             let seg_per_min = document.getElementById("segment__stat_segmin");
