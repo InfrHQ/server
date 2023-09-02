@@ -31,7 +31,7 @@ async function getAPIKeys() {
                     <td>${key.status}</td>
                     <td>
                         <button class="btn btn-sm btn-primary m-1" onclick="updateAPIKey('${key.id}')">Edit</button>
-                        <button class="btn btn-sm btn-primary m-1" onclick="copyAPIKey('${key.id}')">Copy</button>
+                        <button class="btn btn-sm btn-success m-1" onclick="copyAPIKey('${key.id}')">Copy Key</button>
                         <!-- You can also add more buttons for actions like "Deactivate", "Delete", etc. -->
                     </td>
                 </tr>`;

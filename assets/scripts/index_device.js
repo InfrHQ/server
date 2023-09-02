@@ -30,6 +30,7 @@ async function getDevices() {
                     <td>${device.status}</td>
                     <td>
                         <button class="btn btn-sm btn-primary m-1" onclick="updateDevice('${device.id}')">Edit</button>
+                        <button class="btn btn-sm btn-success m-1" onclick="copyDeviceID('${device.id}')">Copy ID</button>
                         <!-- Additional action buttons can be added here -->
                     </td>
                 </tr>`;
@@ -132,6 +133,11 @@ async function updateDevice(id) {
         return
     }
     showDeviceUpdateModal(device);
+}
+
+function copyDeviceID(ID) {
+    navigator.clipboard.writeText(ID);
+    setAlert("Device ID copied to clipboard.", false, "alert__device");
 }
 
     
