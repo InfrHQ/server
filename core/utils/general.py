@@ -29,7 +29,7 @@ def verify_admin_request(incoming_request):
     return True
 
 
-def colored_print(text, color: Literal["red", "green", "yellow", "blue", "reset"] = "reset"):
+def colored_print(text, color: Literal["red", "green", "yellow", "blue", "white", "reset"] = "reset"):
     """
     :dev This function prints colored text to the console.
     :param text (str): Text.
@@ -40,8 +40,12 @@ def colored_print(text, color: Literal["red", "green", "yellow", "blue", "reset"
         "green": "\033[92m",
         "yellow": "\033[93m",
         "blue": "\033[94m",
+        "white": "none",
         "reset": "\033[0m"
     }
-    print(color_codes[color] + text + color_codes["reset"])
+    if color_codes[color] == "none":
+        print(text)
+    else:
+        print(color_codes[color] + text + color_codes["reset"])
 
     return None

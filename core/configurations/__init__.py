@@ -24,18 +24,24 @@ except Exception as e:
     sys.exit(1)
 
 
+def get_split_config(config, section, key, index):
+    try:
+        item = str(config.get(section, key)).split("|")[index]
+        item = None if item == "none" else item
+        return item
+    except Exception:
+        return None
+
+
 class Service:
-    app_secret = str(config.get("SERVICE", "APP_SEC_DATA")).split("|")[0]
-    admin_secret = str(config.get("SERVICE", "APP_SEC_DATA")).split("|")[1]
-    env_type = str(config.get("SERVICE", "APP_SEC_DATA")).split("|")[2]
-    server_host = str(config.get("SERVICE", "APP_SEC_DATA")).split("|")[3]
+    app_secret = get_split_config(config, "SERVICE", "APP_SEC_DATA", 0)
+    admin_secret = get_split_config(config, "SERVICE", "APP_SEC_DATA", 1)
+    env_type = get_split_config(config, "SERVICE", "APP_SEC_DATA", 2)
+    server_host = get_split_config(config, "SERVICE", "APP_SEC_DATA", 3)
 
 
 class Log:
-    path = config.get("LOG", "PATH")
-    level = config.get("LOG", "LEVEL") or "INFO"
-    size = config.get("LOG", "MAX_SIZE_BYTES")
-    backup_count = config.get("LOG", "BACKUP_COUNT")
+    location = get_split_config(config, "LOG", "DATA", 0) if get_split_config(config, "LOG", "DATA", 0) else "internal"
 
 
 class Postgre:
@@ -43,9 +49,8 @@ class Postgre:
 
 
 class Storage:
-    local = True if str(config.get("STORAGE", "DATA")).split("|")[0] == "true" else False
-    third_party = None if str(config.get("STORAGE", "DATA")).split(
-        "|")[1] == "none" else str(config.get("STORAGE", "DATA")).split("|")[1]
+    local = True if get_split_config(config, "STORAGE", "DATA", 0) == "true" else False
+    third_party = get_split_config(config, "STORAGE", "DATA", 1)
 
 
 class Redis:
@@ -53,22 +58,18 @@ class Redis:
 
 
 class Supabase:
-    if Storage.third_party == "supabase":
-        url = str(config.get("SUPABASE", "DATA")).split("|")[0]
-        key = str(config.get("SUPABASE", "DATA")).split("|")[1]
-        bucket = str(config.get("SUPABASE", "DATA")).split("|")[2]
-    else:
-        url = ""
-        key = ""
-        bucket = ""
+    url = get_split_config(config, "SUPABASE", "DATA", 0)
+    key = get_split_config(config, "SUPABASE", "DATA", 1)
+    bucket = get_split_config(config, "SUPABASE", "DATA", 2)
 
 
 class AzureBlob:
-    if Storage.third_party == "azure_blob":
-        url = str(config.get("AZURE", "DATA")).split("|")[0]
-        key = str(config.get("AZURE", "DATA")).split("|")[1]
-        container_name = str(config.get("AZURE", "DATA")).split("|")[2]
-    else:
-        url = ""
-        key = ""
-        container_name = ""
+    url = get_split_config(config, "AZURE", "DATA", 0)
+    key = get_split_config(config, "AZURE", "DATA", 1)
+    container_name = get_split_config(config, "AZURE", "DATA", 2)
+
+
+class Axiom:
+    org_id = get_split_config(config, "AXIOM", "DATA", 0)
+    api_key = get_split_config(config, "AXIOM", "DATA", 1)
+    url = get_split_config(config, "AXIOM", "DATA", 2)

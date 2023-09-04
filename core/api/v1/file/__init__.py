@@ -18,7 +18,7 @@ def get_file_route(file_id):
     file_id = file_id.split(".")[0]
     file = cache_client.get_item(file_id)
     if file:
-        data = json.loads(file)
+        data = json.loads(file)  # type: ignore
         file_path = data['file_path']
         mimetype = data['mimetype']
         file = storage_client.get_file(file_path)

@@ -12,11 +12,12 @@ class StorageManager:
 
     def __init__(self):
         if Storage.third_party == "supabase":
-            self.supabase = create_client(Supabase.url, Supabase.key)
+            self.supabase = create_client(Supabase.url, Supabase.key)  # type: ignore
             self.blob_service_client = None
             self._validate_bucket()
         elif Storage.third_party == "azure_blob":
-            self.blob_service_client = BlobServiceClient(account_url=AzureBlob.url, credential=AzureBlob.key)
+            self.blob_service_client = BlobServiceClient(
+                account_url=AzureBlob.url, credential=AzureBlob.key)  # type: ignore
             self.supabase = None
             self._validate_container()
         else:
