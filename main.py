@@ -12,6 +12,7 @@ from core.api.v1.file import file_blueprint
 from core.api.v1.segment import segment_blueprint
 from core.api.v1.user import user_blueprint
 from core.connectors.postgre import db
+from core.connectors.telemetry import init_telemetry
 from core.configurations import Service, Postgre
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -27,6 +28,7 @@ CORS(application)
 
 db.init_app(application)
 migrate = Migrate(application, db)
+init_telemetry()
 
 @application.route('/')
 def landing_page():

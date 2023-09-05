@@ -27,3 +27,4 @@ azure-storage-blob==12.17.0
 pre-commit==3.3.3
 flake8==6.1.0
 autopep8==2.0.2
+sentry-sdk==1.30.0

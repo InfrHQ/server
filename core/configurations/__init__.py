@@ -44,6 +44,10 @@ class Log:
     location = get_split_config(config, "LOG", "DATA", 0) if get_split_config(config, "LOG", "DATA", 0) else "internal"
 
 
+class Telemetry:
+    disable = True if get_split_config(config, "TELEMETRY", "DATA", 0) == "true" else False
+
+
 class Postgre:
     uri = config.get("POSTGRE", "URI")
 
