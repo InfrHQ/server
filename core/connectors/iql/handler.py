@@ -40,7 +40,8 @@ class IQLHandler(IQLParser):
             segment_key = getattr(Segment, key)
 
         # Convert UNIX timestamps to datetime objects if applicable
-        if isinstance(value, int) or isinstance(value, float):
+        # Make sure it's not a boolean as T/F is an int instance
+        if (isinstance(value, int) or isinstance(value, float)):
             try:
                 value = datetime.utcfromtimestamp(value)
             except ValueError:
@@ -111,6 +112,8 @@ class IQLHandler(IQLParser):
             self._make__include_bounding_box = True
         if 'vector' in items:
             self._make__include_vector = True
+        if 'page_html_url' in items:
+            self._make__include_page_html = True
         return query
 
     def _handle_order(self, step, query):
@@ -268,6 +271,7 @@ class IQLHandler(IQLParser):
             return segment.to_json(
                 get_vector=self._make__include_vector,
                 get_screenshot=self._make__include_screenshot,
+                get_page_html=self._make__include_page_html,
                 get_bounding_box=self._make__include_bounding_box
             )
         else:
@@ -292,6 +296,10 @@ class IQLHandler(IQLParser):
             if self._make__include_bounding_box:
                 row_dict['bounding_box_url'] = storage_client.get_file_url(
                     f"segments/{row_dict['id']}/bounding_box_data.json.lzma")
+
+            if self._make__include_page_html:
+                row_dict['page_html_url'] = storage_client.get_file_url(
+                    f"segments/{row_dict['id']}/page_html.json.lzma")
 
             return row_dict
 

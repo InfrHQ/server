@@ -40,7 +40,7 @@ def send_assets(path):
 
 @application.route('/version')
 def version():
-    return "1.0.0"
+    return "0.0.1"
 
 application.register_blueprint(user_blueprint)
 application.register_blueprint(segment_blueprint)

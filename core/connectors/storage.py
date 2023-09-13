@@ -91,17 +91,27 @@ class StorageManager:
         if not file_ending in ["webp", "lzma", "jpg"]:  # noqa
             return None
 
+        lzma_type = 'json'
         if file_ending == "lzma":
-            # Make sure it's a .json.lzma file
-            if file_path.split(".")[-2] != "json":
+            # Make sure it's a .{valid}.lzma file
+            if file_path.split(".")[-2] == "html":
+                lzma_type = 'html'
+            elif file_path.split(".")[-2] == "json":
+                lzma_type = 'json'
+            else:
                 return None
 
         is_lzma = False
         mimetype = "image/webp"
         if file_ending == "lzma":
-            mimetype = "application/json"
-            file_ending = "json"
-            is_lzma = True
+            if lzma_type == "json":
+                mimetype = "application/json"
+                file_ending = "json"
+                is_lzma = True
+            elif lzma_type == "html":
+                mimetype = "text/html"
+                file_ending = "html"
+                is_lzma = True
         if file_ending == "jpg":
             mimetype = "image/jpeg"
 

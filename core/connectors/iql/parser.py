@@ -12,6 +12,7 @@ class IQLParser:
         self._make__include_screenshot = False
         self._make__include_bounding_box = False
         self._make__include_vector = False
+        self._make__include_page_html = False
 
         # Fields flags
         self._fields__keys = []
@@ -42,7 +43,7 @@ class IQLParser:
                 self._parse_geobox(line)
             elif line.startswith('vector search '):
                 self._parse_vector_search(line)
-            elif line.startswith('return '):
+            elif line.startswith('return'):
                 self._parse_return(line)
 
         self._parse_final()

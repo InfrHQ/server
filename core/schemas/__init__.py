@@ -167,7 +167,8 @@ class Segment(BaseModel):
     extracted_text = db.Column(Text)
     attributes = db.Column(JSONB)
 
-    def to_json(self, get_vector=False, get_screenshot=False, get_bounding_box=False, include_fields=None):
+    def to_json(self, get_vector=False, get_screenshot=False, get_bounding_box=False,
+                get_page_html=False, include_fields=None):
         # Initialize an empty dictionary to hold the data
         data = {}
 
@@ -177,7 +178,7 @@ class Segment(BaseModel):
         # Check if include_fields is None, if so, include all fields
         if include_fields is None:
             include_fields = [
-                'id', 'device_id', 'status', 'item_type', 'date_created',
+                'id', 'user_id', 'device_id', 'status', 'item_type', 'date_created',
                 'date_updated', 'date_generated', 'available_in', 'lat', 'lng',
                 'name', 'description', 'extracted_text', 'attributes'
             ]
@@ -200,7 +201,17 @@ class Segment(BaseModel):
         if get_screenshot:
             data['screenshot_url'] = storage_client.get_file_url(f"segments/{self.id}/image.webp")
 
+        if get_page_html:
+            if self.attributes.get('page_html_available', False):
+                data['page_html_url'] = storage_client.get_file_url(f"segments/{self.id}/page_html.html.lzma")
+            else:
+                data['page_html_url'] = None
+
         if get_bounding_box:
-            data['bounding_box_url'] = storage_client.get_file_url(f"segments/{self.id}/bounding_box_data.json.lzma")
+            if self.attributes.get('bounding_box_available', False):
+                data['bounding_box_url'] = storage_client.get_file_url(
+                    f"segments/{self.id}/bounding_box_data.json.lzma")
+            else:
+                data['bounding_box_url'] = None
 
         return data

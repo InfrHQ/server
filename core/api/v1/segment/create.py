@@ -103,6 +103,11 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
     if not json_metadata or not isinstance(json_metadata, dict):
         return jsonify({"message": "JSON metadata not provided"}), 400
 
+    # Handle page_html
+    page_html = json_metadata.get('page_html')
+    if page_html and not isinstance(page_html, str):
+        return jsonify({"message": "Page HTML not provided or invalid"}), 400
+
     segment_id = get_alphnum_id(prefix='segment_', id_len=16)
 
     # Get the pillow image
@@ -119,6 +124,7 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
     - current_url
     - bundle_id
     - bounding_box_available
+    - page_html_available
     """
     attributes = {}
     for key in ['app_name', 'window_name', 'current_url', 'bundle_id']:
@@ -129,6 +135,10 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
         attributes['bounding_box_available'] = True
     else:
         attributes['bounding_box_available'] = False
+    if isinstance(page_html, str):
+        attributes['page_html_available'] = True
+    else:
+        attributes['page_html_available'] = False
 
     # Get the vector
     conversion_text = extracted_text + ' ' \
@@ -137,7 +147,7 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
     vector = get_text_list_as_vectors([conversion_text])[0]
 
     # Store the image & metadata
-    store_image(image, box_data, segment_id, item_type='screenshot')
+    store_image(image, box_data, page_html, segment_id, item_type='screenshot')
 
     # Get the name as Desktop Screenshot - Mon, 01 Jan, 2021 12:00:00 GMT - App Name - Window Name
     name = f"Desktop Screenshot - {datetime.utcfromtimestamp(date_generated).strftime('%a, %d %b, %Y %H:%M:%S GMT')}"

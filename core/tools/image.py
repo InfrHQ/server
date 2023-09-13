@@ -80,11 +80,12 @@ def get_data_from_image(image):
     return json.loads(data_json)
 
 
-def store_image(img, json_data, segment_id: str, item_type: str):
+def store_image(img, json_data, page_html, segment_id: str, item_type: str):
     """
     :dev This function stores the image and its metadata.
     :param img (str): Pillow image.
     :param json_data (dict): Data from the image.
+    :param page_html (str|None): Page HTML.
     :param segment_id (str): Segment ID.
     :param item_type (str): Item type. screenshot, etc.
     """
@@ -94,13 +95,15 @@ def store_image(img, json_data, segment_id: str, item_type: str):
     buffer.seek(0)
     buffer_bytes = buffer.getvalue()
 
-    # Print the size of the image
-    print("Size of Image: {} bytes".format(len(buffer_bytes)))
-
     # Upload the image to the storage
     if item_type == "screenshot":
         storage_client.upload_file(buffer_bytes, f"segments/{segment_id}/image.webp")
         storage_client.upload_file(lzma.compress(json.dumps(json_data).encode('utf-8')),
                                    f"segments/{segment_id}/box_data.json.lzma")
+
+        # Upload the page HTML to the storage
+        if page_html:
+            page_html_compressed = lzma.compress(page_html.encode('utf-8'))
+            storage_client.upload_file(page_html_compressed, f"segments/{segment_id}/page_html.html.lzma")
 
     return True
