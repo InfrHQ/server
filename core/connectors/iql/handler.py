@@ -299,7 +299,7 @@ class IQLHandler(IQLParser):
 
             if self._make__include_page_html:
                 row_dict['page_html_url'] = storage_client.get_file_url(
-                    f"segments/{row_dict['id']}/page_html.json.lzma")
+                    f"segments/{row_dict['id']}/page_html.html.lzma")
 
             return row_dict
 
