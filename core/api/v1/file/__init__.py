@@ -28,5 +28,7 @@ def get_file_route(file_id):
             response = make_response(file)
             response.headers.set('Content-Type', mimetype)
             return response
+        else:
+            return "File not found", 404
     else:
         return "File not found", 404
