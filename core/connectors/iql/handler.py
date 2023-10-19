@@ -295,7 +295,7 @@ class IQLHandler(IQLParser):
 
             if self._make__include_bounding_box:
                 row_dict['bounding_box_url'] = storage_client.get_file_url(
-                    f"segments/{row_dict['id']}/bounding_box_data.json.lzma")
+                    f"segments/{row_dict['id']}/box_data.json.lzma")
 
             if self._make__include_page_html:
                 row_dict['page_html_url'] = storage_client.get_file_url(

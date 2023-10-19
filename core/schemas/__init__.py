@@ -210,7 +210,7 @@ class Segment(BaseModel):
         if get_bounding_box:
             if self.attributes.get('bounding_box_available', False):
                 data['bounding_box_url'] = storage_client.get_file_url(
-                    f"segments/{self.id}/bounding_box_data.json.lzma")
+                    f"segments/{self.id}/box_data.json.lzma")
             else:
                 data['bounding_box_url'] = None
 
