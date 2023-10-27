@@ -19,4 +19,4 @@ def retrieve_user_by_apikey_route_wrapper(incoming_request):
     if not user:
         return {"message": "User not found"}, 404
     else:
-        return {"message": "User found", "user": user.to_json(include_apikeys=include_apikeys)}, 200
+        return {"message": "User found", "user": user.to_json(include_apikeys=include_apikeys, include_devices=True)}, 200

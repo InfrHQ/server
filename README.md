@@ -25,7 +25,7 @@ Infr server is a Python server that exposes a REST API to store, clean & query d
 
 ## Is there a hosted version?
 
-Yes! We have a hosted version of Infr available at [getinfr.com](https://getinfr.com/register). You can sign up for free and start using it right away.
+Yes! We have a hosted version of Infr available at [getinfr.com](https://getinfr.com). You can sign up for free and start using it right away.
 
 ## How do I self-host?
 
