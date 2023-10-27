@@ -126,9 +126,10 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
     - bundle_id
     - bounding_box_available
     - page_html_available
+    - tags
     """
     attributes = {}
-    for key in ['app_name', 'window_name', 'current_url', 'bundle_id', 'app_pid']:
+    for key in ['app_name', 'window_name', 'current_url', 'bundle_id', 'app_pid', 'tags']:
         if key in json_metadata:
             if isinstance(json_metadata[key], str):
                 attributes[key] = json_metadata[key]
@@ -137,6 +138,9 @@ def handle_desktop_screenshot(device_id: str, image_file: Union[str, None],
                     attributes[key] = int(json_metadata[key])
                 except Exception:
                     pass
+            if key == 'tags':
+                if isinstance(json_metadata[key], list):
+                    attributes[key] = json_metadata[key]
 
     if isinstance(box_data, list):
         attributes['bounding_box_available'] = True

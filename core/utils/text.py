@@ -20,10 +20,7 @@ def clean_string(text):
     # Reduce multiple spaces to a single space
     text = re.sub(r"\s+", " ", text)
 
-    # Eliminate consecutive non-alphanumeric characters
-    cleaned_text = re.sub(r"([^\w\s])\1+", r"\1", text)
-
     # Lowercase the text
-    cleaned_text = cleaned_text.lower()
+    text = text.lower()
 
-    return cleaned_text.strip()
+    return text.strip()

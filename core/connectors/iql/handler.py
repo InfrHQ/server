@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from core.connectors.iql.parser import IQLParser
 from core.connectors.storage import storage_client
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class IQLHandler(IQLParser):
@@ -72,15 +73,18 @@ class IQLHandler(IQLParser):
         # Handle the text & list operators
         conditions = []
         if 'includes' in operator:
+
             if not isinstance(value, list):
                 raise ValueError(f'Invalid value for "includes" operator: {value}')
-            for v in value:
-                conditions.append(segment_key.in_([v]))
 
-            if is_any:
-                query = query.filter(or_(*conditions))
-            elif is_all:
-                query = query.filter(and_(*conditions))
+            if isinstance(segment_key.type, JSONB):
+                conditions = [(segment_key.astext.contains(v)) for v in value]
+                if is_any:
+                    query = query.filter(or_(*conditions))
+                elif is_all:
+                    query = query.filter(and_(*conditions))
+            else:
+                pass
 
         elif 'contains' in operator:
             if not isinstance(value, str):
