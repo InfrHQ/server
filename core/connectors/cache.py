@@ -11,7 +11,7 @@ class Cache:
             self._redis_client = redis.Redis().from_url(Redis.uri)
         else:
             self._cache_backend = "in_memory"
-            self._ttl_cache = TTLCache(maxsize=500, ttl=3600)
+            self._ttl_cache = TTLCache(maxsize=1000, ttl=3600)
 
         self._warn_about_configuration()
 

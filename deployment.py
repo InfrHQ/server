@@ -168,8 +168,28 @@ class DeploymentSetup:
             "POSTGRES_PASSWORD": postgre_password,
             "POSTGRES_DB": "postgres"
         }
+    
+    def deploy_bare_flask_app(self):
+        self.colored_print("Deploying as a Python app...", "blue")
 
-    def quickstart_setup(self):
+        # Run entrypoint.sh
+        subprocess.run(["bash", "entrypoint.sh"], check=True)
+
+        # Wait for the app to start
+        self.colored_print("Waiting for the app to start...", "blue")
+
+        # Listen for the log
+        success = self.listen_for_specific_log("Owner API key", timeout=60)
+        
+        if success:
+            self.colored_print("App started successfully!", "green")
+        else:
+            self.colored_print("App failed to start!", "red")
+
+        return success
+
+
+    def quickstart_setup(self, logging_disabled=False):
         self.colored_print("Running Quickstart Setup...", "blue")
 
         # Update compose to pull
@@ -191,8 +211,13 @@ class DeploymentSetup:
             "FLASK_APP": "main.py",
             "POSTGRES_USER": "postgres",
             "POSTGRES_PASSWORD": postgres_password,
-            "POSTGRES_DB": "postgres"
+            "POSTGRES_DB": "postgres",
+            "TELEMETRY_DISABLE": "false"
         }
+
+        if logging_disabled:
+            print("Logging is disabled.")
+            data["TELEMETRY_DISABLE"] = "true"
 
         # Writing to .env file
         with open(".env", "w") as env_file:
@@ -212,6 +237,50 @@ class DeploymentSetup:
         self.colored_print(f"Head over to {host_url} & enter the API key for a simple Infr dashboard!", "green")
         self.revert_docker_compose()
         self.colored_print("\n\n======= Quickstart Setup Complete! =======\n\n", "green")
+
+    def supabase_setup(self, logging_disabled=False):
+        self.colored_print("Running Supabase Setup...", "blue")
+
+        # Update compose to pull
+        self.modify_docker_compose_for_quickstart()
+
+        # Generating random secrets
+        app_secret = secrets.token_urlsafe(16)
+        admin_secret = secrets.token_urlsafe(16)
+        env_dev_prod = "dev"
+        host_url = "http://127.0.0.1:8000"
+
+        # Get Supabase details
+        supabase_postgre_uri = self.prompt_for_env_var("Enter your Supabase Postgre URI (include password)")
+        supabase_api_key = self.prompt_for_env_var("Enter your Supabase API key (service_role)")
+
+        # Extract Postgre host
+        supabase_host = supabase_postgre_uri.split("@")[1].split(":")[0].replace("db.", "").replace("/postgres", "")
+
+        # Setting values for .env file
+        data = {
+            "APP_SEC_DATA": f"{app_secret}|{admin_secret}|{env_dev_prod}|{host_url}",
+            "STORAGE_DATA": "false|supabase",
+            "SUPABASE_DATA": f"https://{supabase_host}|{supabase_api_key}|infr",
+            "FLASK_APP": "main.py",
+            "POSTGRE_URI": supabase_postgre_uri,
+            "TELEMETRY_DISABLE": "false"
+        }
+
+        if logging_disabled:
+            data["TELEMETRY_DISABLE"] = "true"
+        print(data)
+        # Writing to .env file
+        with open(".env", "w") as env_file:
+            for key, value in data.items():
+                env_file.write(f"{key}={value}\n")
+
+        self.colored_print("\n.env file has been set up with default values! You can change them later.", "green")
+
+        # Deploy as a bare flask app
+        self.deploy_bare_flask_app()
+
+        return None
 
     def advanced_setup(self):
 
@@ -236,13 +305,15 @@ class DeploymentSetup:
             self.colored_print(
                 "Docker and/or Docker Compose are not installed. Please install them to deploy the app.", "red")
 
-    def main(self, mode):
+    def main(self, mode, logging_disabled=False):
         self.colored_print("\n\n======= Deployment Setup for your Infr Server ⚡ =======\n\n", "green")
 
         if mode == "quickstart":
-            self.quickstart_setup()
+            self.quickstart_setup(logging_disabled)
         elif mode == "advanced":
             self.advanced_setup()
+        elif mode == "quickstart_supabase":
+            self.supabase_setup(logging_disabled)
         else:
             self.colored_print("Invalid option. Please choose either —quickstart or --advanced.", "red")
 
@@ -251,6 +322,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Deployment Setup for your Infr Server")
     parser.add_argument('--advanced', action='store_true', help="Advanced setup mode")
     parser.add_argument('--quickstart', action='store_true', help="Quickstart setup mode")
+    parser.add_argument('--quickstart-supabase', action='store_true', help="Quickstart setup mode with Supabase")
+    parser.add_argument('--logging-disable', action='store_true', help="Disable logging")
 
     args = parser.parse_args()
 
@@ -261,8 +334,10 @@ if __name__ == "__main__":
         mode = "advanced"
     elif args.quickstart:
         mode = "quickstart"
+    elif args.quickstart_supabase:
+        mode = "quickstart_supabase"
     else:
         mode = None
 
     setup = DeploymentSetup()
-    setup.main(mode)
+    setup.main(mode, args.logging_disable)
